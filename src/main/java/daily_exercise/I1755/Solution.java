@@ -5,38 +5,41 @@ import java.util.*;
 class Solution {
     public static void main(String[] args) {
         Solution solution = new Solution();
-        int r = solution.minAbsDifference(new int[]{5,-7,3,5}, 6);
+        int r = solution.minAbsDifference(new int[]{1,2,3}, -7);
         System.out.println(r);
     }
 
     public int minAbsDifference(int[] nums, int goal) {
-        if(nums.length == 0) return Math.abs(goal);
-        Arrays.sort(nums);
-        long[] upper = new long[nums.length];
-        long[] lower = new long[nums.length];
-        upper[upper.length-1] = Math.max(0, nums[nums.length-1]);
-        lower[lower.length-1] = Math.min(0, nums[nums.length-1]);
-        for(int i = nums.length-2;i>=0;i--) {
-            upper[i] = upper[i+1] + Math.max(nums[i], 0);
-            lower[i] = lower[i+1] + Math.min(nums[i], 0);
+        List<Integer> left = allCom(nums, 0, nums.length / 2);
+        List<Integer> right = allCom(nums, nums.length/2, nums.length);
+        TreeSet<Integer> set = new TreeSet<>();
+        for(int i : left) set.add(i);
+        Integer result = null;
+        for(int i : right) {
+            Integer tmp = diff(set, goal - i);
+            if(result == null) result = tmp;
+            else result = tmp == null ? result : Math.min(result, tmp);
         }
-        Long result = null;
-        Set<Long> set = new HashSet<>();
-        set.add(0L);
-        for(int i = 0 ; i < nums.length;i++) {
-            Set<Long> next = new HashSet<>();
-            for(Long s : set) {
-                if(result == null || ((s + lower[i] - goal) <= result  && goal - (s + upper[i]) <= result)) {
-                    result = result == null ? Math.abs(s  - goal) : Math.min(result, Math.abs(s - goal));
-                    next.add(s);
-                    next.add(s+nums[i]);
-                }
+        return result;
+    }
+
+    Integer diff(TreeSet<Integer> set, int target) {
+        Integer upper = set.ceiling(target);
+        Integer lower = set.floor(target);
+        if(upper == null) return lower == null ? null : target - lower;
+        if(lower == null) return upper - target;
+        return Math.min(target - lower, upper - target);
+    }
+
+    List<Integer> allCom(int[] nums, int start, int end) {
+        List<Integer> list = new ArrayList<>();
+        list.add(0);
+        for(int i = start; i < end;i++) {
+            int size = list.size();
+            for(int j = 0;j<size;j++) {
+                list.add(list.get(j) + nums[i]);
             }
-            set = next;
         }
-        for(long s : set) {
-            result = Math.min(result,Math.abs(s-goal));
-        }
-        return (int)(long)result;
+        return list;
     }
 }
